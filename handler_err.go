@@ -3,5 +3,5 @@ package main
 import "net/http"
 
 func handlerErr(w http.ResponseWriter, r *http.Request) {
-	responseWithJson(w, 400, "Something went wrong")
+	respondWithJson(w, 400, "Something went wrong")
 }
