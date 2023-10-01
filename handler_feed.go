@@ -10,9 +10,10 @@ import (
 	"github.com/jegorie/rss-server/internal/database"
 )
 
-func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type parameters struct {
 		Name string `json:"name"`
+		Url  string `json:"url"`
 	}
 	decoder := json.NewDecoder(r.Body)
 
@@ -23,11 +24,13 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, err := apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+	feed, err := apiCfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		Name:      params.Name,
+		Url:       params.Url,
+		OwnerID:   user.ID,
 	})
 
 	if err != nil {
@@ -35,9 +38,17 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJson(w, 201, databaseUserToUser(user))
+	respondWithJson(w, 201, databaseFeedToFeed(feed))
 }
 
-func (apiCfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
-	respondWithJson(w, 200, databaseUserToUser(user))
+func (apiCfg *apiConfig) handlerGetAllFeeds(w http.ResponseWriter, r *http.Request) {
+
+	feeds, err := apiCfg.DB.GetAllFeeds(r.Context())
+
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get all feeds %v", err))
+		return
+	}
+
+	respondWithJson(w, 200, databaseAllFeedToAllFeed(feeds))
 }

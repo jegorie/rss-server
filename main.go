@@ -46,7 +46,7 @@ func main() {
 		log.Fatal("Can't connect to db", err)
 	}
 
-	apiCnf := apiConfig{
+	apiCfg := apiConfig{
 		DB: database.New(conn),
 	}
 
@@ -67,7 +67,10 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerErr)
-	v1Router.Post("/users", apiCnf.handlerCreateUser)
+	v1Router.Post("/users", apiCfg.handlerCreateUser)
+	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUserByApiKey))
+	v1Router.Get("/feed", apiCfg.handlerGetAllFeeds)
+	v1Router.Post("/feed", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 
 	r.Mount("/v1", v1Router)
 
